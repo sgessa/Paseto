@@ -117,14 +117,12 @@ defmodule Paseto do
         version: "v2"
         }}
   """
-  @spec generate_token(String.t(), String.t(), String.t(), String.t()) ::
-          {:ok, String.t()} | {:error, String.t()}
+  @spec generate_token(String.t(), String.t(), String.t(), String.t()) :: String.t() | {:error, String.t()}
   def generate_token(version, purpose, payload, secret_key, footer \\ "") do
     _generate_token(version, purpose, payload, secret_key, footer)
   end
 
-  @spec _generate_token(String.t(), String.t(), binary, String.t(), String.t()) ::
-          {:ok, String.t()} | {:error, String.t()}
+  @spec _generate_token(String.t(), String.t(), binary, String.t(), String.t()) :: String.t() | {:error, String.t()}
   defp _generate_token(version, "public", payload, {_pk, sk}, footer) do
     case String.downcase(version) do
       "v2" -> V2.sign(payload, sk, footer)
