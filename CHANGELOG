@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.4.1] - 19 April 2024
+* Fix `generate_token` spec return type - @mitchelljeppsonbill
+
 ### [1.4.0] - 23 April 2022
 * Updating `:crypto.hmac/3` and `:crypto.hmac/4` calls for OTP 24
 
