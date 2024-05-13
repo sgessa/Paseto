@@ -172,7 +172,7 @@ dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:paseto, "~> 1.4.1"}
+    {:paseto, "~> 1.5.0"}
   ]
 end
 ```
