@@ -1,8 +1,6 @@
 defmodule Paseto.Utils do
   @moduledoc false
 
-  use Bitwise
-
   @doc """
   A binary match pattern shortcut to encode a 64-bit unsigned integer into a
   little-endian binary string.
@@ -31,8 +29,8 @@ defmodule Paseto.Utils do
   """
   @spec pre_auth_encode([String.t()]) :: binary()
   def pre_auth_encode(pieces) when is_list(pieces) do
-    Enum.into(pieces, <<Enum.count(pieces)::le64>>, fn piece ->
-      <<byte_size(piece)::le64>> <> piece
+    Enum.into(pieces, <<Enum.count(pieces)::64-little>>, fn piece ->
+      <<byte_size(piece)::64-little>> <> piece
     end)
   end
 

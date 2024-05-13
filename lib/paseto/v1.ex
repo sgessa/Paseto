@@ -49,10 +49,10 @@ defmodule Paseto.V1 do
       iex> Paseto.V1.encrypt("This is a test message", "Test Key")
       "v1.local.3qbJND5q6IbF7cZxxWjmSTaVyMo2M3LaEDJ8StdFXw8PTUo55YIyy2BhIaAN6m-IdbGmdwM_ud1IpOyrz3CysNIkjBjab7NLRPbksV-XIsWYRFX6r7z2jsIfH-8emAv_BVtXi9lY"
   """
-  @spec encrypt(String.t(), String.t(), String.t(), binary | nil) ::
+  @spec encrypt(String.t(), binary, String.t(), binary | nil) ::
           String.t() | {:error, String.t()}
-  def encrypt(data, key, footer \\ "", n \\ nil) do
-    aead_encrypt(data, key, footer, n || :crypto.strong_rand_bytes(@nonce_size))
+  def encrypt(data, secret_key, footer \\ "", n \\ nil) do
+    aead_encrypt(data, secret_key, footer, n || :crypto.strong_rand_bytes(@nonce_size))
   end
 
   @doc """
@@ -65,10 +65,10 @@ defmodule Paseto.V1 do
       iex> Paseto.V1.decrypt(token, "Test Key")
       "{:ok, "This is a test message"}"
   """
-  @spec decrypt(String.t(), String.t(), String.t() | nil) ::
+  @spec decrypt(String.t(), binary, String.t() | nil) ::
           {:ok, String.t()} | {:error, String.t()}
-  def decrypt(data, key, footer \\ "") do
-    aead_decrypt(data, @header_local, key, footer)
+  def decrypt(data, secret_key, footer \\ "") do
+    aead_decrypt(data, @header_local, secret_key, footer)
   end
 
   @doc """
@@ -79,12 +79,12 @@ defmodule Paseto.V1 do
       iex> Paseto.V1.sign("This is a test message!", secret_key)
       "v1.public.VGhpcyBpcyBhIHRlc3QgbWVzc2FnZSGswqHiZVv31r99PZphr2hqJQe81Qc_7XkxHyVb_7-xORKp-VFJdEiqfINgLnwxo8n1pkIDH4_9UfhpEyS1ivgxfYe-55INfV-OyzSpHMbuGA0xviIln0fdn98QljGwh3uDFduXnfaWeBYA6nE0JingWEvVG-V8L12IdFh1rq9ZWLleFVsn719Iz8BqsasmFAICLRpnToL7X1syHdZ6PjhBnStCM5GHHzCwbdvj64P5QqxvtUzTfXBBeC-IKu_HVxIxY9VaN3d3KQotBZ1J6W1oJ4cX0JvUR4pIaq3eKfOKdoR5fUkyjS0mP9GjjoJcW8oiKKqb3dAaCHZW9he2iZNn"
   """
-  @spec sign(String.t(), String.t(), String.t()) :: String.t() | {:error, String.t()}
-  def sign(data, public_key, footer \\ "") do
+  @spec sign(String.t(), binary, String.t()) :: String.t() | {:error, String.t()}
+  def sign(data, secret_key, footer \\ "") do
     m2 = Utils.pre_auth_encode([@header_public, data, footer])
 
     signature =
-      :crypto.sign(:rsa, @hash_algo, m2, public_key, [
+      :crypto.sign(:rsa, @hash_algo, m2, secret_key, [
         {:rsa_padding, :rsa_pkcs1_pss_padding},
         {:rsa_mgf1_md, @hash_algo}
       ])

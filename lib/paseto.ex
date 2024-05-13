@@ -37,7 +37,7 @@ defmodule Paseto do
 
   # Examples:
       iex> token = "v2.public.VGhpcyBpcyBhIHRlc3QgbWVzc2FnZSe-sJyD2x_fCDGEUKDcvjU9y3jRHxD4iEJ8iQwwfMUq5jUR47J15uPbgyOmBkQCxNDydR0yV1iBR-GPpyE-NQw"
-      iex> Paseto.parse_token(token, keypair)
+      iex> Paseto.parse_token(token, pk)
       {:ok,
         %Paseto.Token{
           footer: nil,
@@ -47,52 +47,46 @@ defmodule Paseto do
         }}
   """
   @spec parse_token(String.t(), binary()) :: {:ok, Token} | {:error, String.t()}
-  def parse_token(token, key) do
+  def parse_token(token, public_key) do
     with {:ok, %Token{version: version, purpose: purpose, payload: payload, footer: footer}} <-
            Utils.parse_token(token),
-         {:ok, verified_payload} <- _parse_token(version, purpose, payload, key, footer) do
-      decoded_footer =
-        if footer == "" do
-          nil
-        else
-          Utils.b64_decode!(footer)
-        end
-
+         {:ok, verified_payload} <- _parse_token(version, purpose, payload, public_key, footer) do
       {:ok,
        %Token{
          version: version,
          purpose: purpose,
          payload: verified_payload,
-         footer: decoded_footer
+         footer: decode_footer(footer)
        }}
     end
   end
 
   @spec _parse_token(String.t(), String.t(), String.t(), String.t(), String.t() | tuple()) ::
           {:ok, String.t()} | {:error, String.t()}
-  defp _parse_token(version, purpose, payload, key, footer) do
+  defp _parse_token(version, purpose, payload, pk, footer) do
     case String.downcase(version) do
       "v1" ->
         case purpose do
           "local" ->
-            V1.decrypt(payload, key, footer)
+            V1.decrypt(payload, pk, footer)
 
           "public" ->
-            {pk, _sk} = key
             V1.verify(payload, pk, footer)
         end
 
       "v2" ->
         case purpose do
           "local" ->
-            V2.decrypt(payload, key, footer)
+            V2.decrypt(payload, pk, footer)
 
           "public" ->
-            {pk, _sk} = key
             V2.verify(payload, pk, footer)
         end
     end
   end
+
+  defp decode_footer(""), do: nil
+  defp decode_footer(footer), do: Utils.b64_decode!(footer)
 
   @doc """
   Handles generating a token:
@@ -105,10 +99,9 @@ defmodule Paseto do
 
   # Examples:
       iex> {:ok, pk, sk} = Salty.Sign.Ed25519.keypair()
-      iex> keypair = {pk, sk}
-      iex> token = generate_token("v2", "public", "This is a test message", keypair)
+      iex> token = generate_token("v2", "public", "This is a test message", sk)
       "v2.public.VGhpcyBpcyBhIHRlc3QgbWVzc2FnZSe-sJyD2x_fCDGEUKDcvjU9y3jRHxD4iEJ8iQwwfMUq5jUR47J15uPbgyOmBkQCxNDydR0yV1iBR-GPpyE-NQw"
-      iex> Paseto.parse_token(token, keypair)
+      iex> Paseto.parse_token(token, pk)
       {:ok,
         %Paseto.Token{
         footer: nil,
@@ -117,25 +110,30 @@ defmodule Paseto do
         version: "v2"
         }}
   """
-  @spec generate_token(String.t(), String.t(), String.t(), String.t()) :: String.t() | {:error, String.t()}
+  @spec generate_token(String.t(), String.t(), String.t(), binary, String.t()) :: String.t() | {:error, String.t()}
   def generate_token(version, purpose, payload, secret_key, footer \\ "") do
     _generate_token(version, purpose, payload, secret_key, footer)
   end
 
-  @spec _generate_token(String.t(), String.t(), binary, String.t(), String.t()) :: String.t() | {:error, String.t()}
-  defp _generate_token(version, "public", payload, {_pk, sk}, footer) do
-    case String.downcase(version) do
-      "v2" -> V2.sign(payload, sk, footer)
-      "v1" -> V1.sign(payload, sk, footer)
-      _ -> {:error, "Invalid version selected. Only v1 & v2 supported."}
+  defp _generate_token(version, "public", payload, sk, footer) do
+    with {:ok, version_mod} <- version_module(version) do
+      version_mod.sign(payload, sk, footer)
     end
   end
 
-  defp _generate_token(version, "local", payload, key, footer) do
-    case String.downcase(version) do
-      "v2" -> V2.encrypt(payload, key, footer)
-      "v1" -> V1.encrypt(payload, key, footer)
-      _ -> {:error, "Invalid version selected. Only v1 & v2 supported."}
+  defp _generate_token(version, "local", payload, sk, footer) do
+    with {:ok, version_mod} <- version_module(version) do
+      version_mod.encrypt(payload, sk, footer)
+    end
+  end
+
+  defp version_module(version) when is_binary(version) do
+    version = String.upcase(version)
+
+    try do
+      {:ok, String.to_existing_atom("Elixir.Paseto.#{version}")}
+    rescue RuntimeError ->
+      {:error, "Invalid version selected. Only v1 & v2 supported."}
     end
   end
 end
