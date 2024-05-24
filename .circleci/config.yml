@@ -19,6 +19,7 @@ jobs:
             - v1-build-cache-{{ .Branch }}
             - v1-build-cache
 
+      - run: mix local.hex --force
       - run: mix do deps.get --only test, compile
       - run: mix test
       - run: mix credo
