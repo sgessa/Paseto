@@ -1,7 +1,7 @@
 defmodule Paseto.Utils.Crypto do
   @moduledoc false
 
-  alias Salty.Aead.Xchacha20poly1305Ietf
+  alias Paseto.Crypto.XChaCha20Poly1305
 
   @doc """
   AES-256 in counter mode for encrypting. Used for v1 local.
@@ -43,8 +43,7 @@ defmodule Paseto.Utils.Crypto do
 
   def xchacha20_poly1305_encrypt(message, aad, nonce, key)
       when byte_size(nonce) == 24 and byte_size(key) == 32 do
-    # NOTE: nsec (the `nil` value here, isn't used in libsodium.)
-    Xchacha20poly1305Ietf.encrypt(message, aad, nil, nonce, key)
+    XChaCha20Poly1305.encrypt(message, aad, nonce, key)
   end
 
   @doc """
@@ -70,8 +69,7 @@ defmodule Paseto.Utils.Crypto do
 
   def xchacha20_poly1305_decrypt(message, aad, nonce, key)
       when byte_size(nonce) == 24 and byte_size(key) == 32 do
-    # NOTE: Again, `nsec` isn't used.
-    Xchacha20poly1305Ietf.decrypt(nil, message, aad, nonce, key)
+    XChaCha20Poly1305.decrypt(message, aad, nonce, key)
   rescue
     err -> {:error, "Decrypt failed due to #{inspect(err)}"}
   end
