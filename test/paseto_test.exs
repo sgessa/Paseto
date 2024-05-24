@@ -2,7 +2,7 @@ defmodule PasetoTest do
   use ExUnit.Case
   use ExUnitProperties
 
-  alias Salty.Sign.Ed25519
+  alias Paseto.Crypto.Ed25519
 
   @public_exponent 65_537
 
@@ -37,7 +37,7 @@ defmodule PasetoTest do
             {key, key}
 
           "public" ->
-            {:ok, pk, sk} = Ed25519.keypair()
+            {:ok, sk, pk} = Ed25519.generate_keypair()
             {pk, sk}
         end
     end

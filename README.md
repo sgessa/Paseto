@@ -25,15 +25,12 @@ use Paseto in [an insecure way](https://auth0.com/blog/critical-vulnerabilities-
 
 ## Considerations for using this library
 
-There are a few library/binary requirements required in order for the Paseto 
+There are a few library/binary requirements required in order for the Paseto
 library to work on any computer:
-1. Erlang version >= 20.1
+1. Erlang version >= 24.3
     * This is required because this was the first Erlang version to introduce
       crypto:sign/5.
-2. libsodium >= 1.0.13 
-    * This is required for cryptography used in Paseto.
-    * This can be found at https://github.com/jedisct1/libsodium
-3. openssl >= 1.1 
+2. openssl >= 1.1
     * This is needed for XChaCha-Poly1305 used for V2.Local Paseto
 
 ## Want to use this library through Guardian or Plugs?
@@ -72,8 +69,8 @@ This decodes to:
   ```
   * Key used in this example (hex-encoded):
     ```
-    707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f  
-    ``` 
+    707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f
+    ```
 * Footer:
   ```
   Paragon Initiative Enterprises
@@ -112,19 +109,19 @@ To learn what each version means, please see [this page in the documentation](ht
 
 ### Generating a token
 ```elixir
-iex> {:ok, pk, sk} = Salty.Sign.Ed25519.keypair()
+iex> {:ok, sk, pk} = Paseto.Crypto.Ed25519.generate_keypair()
 iex> keypair = {pk, sk}
 iex> token = Paseto.generate_token("v2", "public", "This is a test message", keypair)
 "v2.public.VGhpcyBpcyBhIHRlc3QgbWVzc2FnZSe-sJyD2x_fCDGEUKDcvjU9y3jRHxD4iEJ8iQwwfMUq5jUR47J15uPbgyOmBkQCxNDydR0yV1iBR-GPpyE-NQw"
 ```
 
-In short, we generate a keypair using [libsalty2](https://github.com/Ianleeclark/libsalty2) (libsodium elixir bindings) and generate the token using that keypair.
+In short, we generate a keypair the token using that keypair.
 
 P.S. If you're confused about how to serialize the above keys, you can use functions
 from the [`Base`](https://hexdocs.pm/elixir/Base.html) module:
 
 ```elixir
-iex> {:ok, pk, sk} = Salty.Sign.Ed25519.keypair()
+iex> {:ok, sk, pk} = Paseto.Crypto.Ed25519.generate_keypair()
 iex> pk |> Base.encode16(case: :lower)
 "a17c258ffdd864b3614bd445465ff96e0b16e8509e28e7ba60734f7c433ab7e8"
 ```
@@ -147,26 +144,7 @@ More info can be found in the [HexDocs][].
 
 ## Installation
 
-You need libsodium installed on your machine.
-
-```bash
-# Installing on FreeBSD
-$ cd /usr/ports/security/libsodium/ && make install clean
-
-# Installing on Ubuntu
-$ sudo apt install libsodium-dev
-
-# Installing on Fedora
-$ dnf install libsodium-devel
-
-# Redhat & Cent OS
-$ yum install libsodium-devel
-
-# Installing on OSX
-$ brew install libsodium
-```
-
-The package can be installed by adding `paseto` to your list of 
+The package can be installed by adding `paseto` to your list of
 dependencies in `mix.exs`:
 
 ```elixir

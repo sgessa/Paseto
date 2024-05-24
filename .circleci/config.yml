@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: grappigpanda/elixir-libsodium:1.13_otp24
+      - image: cimg/elixir:1.13.4-erlang-24.3
         environment:
           MIX_ENV: test
 

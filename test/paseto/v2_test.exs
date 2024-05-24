@@ -4,7 +4,7 @@ defmodule Paseto.V2Test do
   alias Paseto.V2
   alias Paseto.Utils
   alias Paseto.Token
-  alias Salty.Sign.Ed25519
+  alias Paseto.Crypto.Ed25519
 
   describe "Encryption/Decryption tests" do
     test "Simple encrypt/decrypt, footerless" do
@@ -67,7 +67,7 @@ defmodule Paseto.V2Test do
   describe "Sign/Verify tests" do
     test "Simple sign/verify, footerless" do
       message = "Test Message"
-      {:ok, pk, sk} = Ed25519.keypair()
+      {:ok, sk, pk} = Ed25519.generate_keypair()
 
       {:ok, %Token{payload: signed_payload}} =
         message
@@ -80,7 +80,7 @@ defmodule Paseto.V2Test do
     test "Simple sign/verify, with footer" do
       message = "Test Message"
       footer = "key-id:533434"
-      {:ok, pk, sk} = Ed25519.keypair()
+      {:ok, sk, pk} = Ed25519.generate_keypair()
 
       {:ok, %Token{payload: signed_payload, footer: encoded_footer}} =
         message
@@ -92,8 +92,8 @@ defmodule Paseto.V2Test do
 
     test "Invalid PK fails to verify, footerless" do
       message = "Test Message"
-      {:ok, _pk1, sk1} = Ed25519.keypair()
-      {:ok, pk2, _sk2} = Ed25519.keypair()
+      {:ok, sk1, _pk1} = Ed25519.generate_keypair()
+      {:ok, _sk2, pk2} = Ed25519.generate_keypair()
 
       {:ok, %Token{payload: signed_payload}} =
         message
@@ -106,8 +106,8 @@ defmodule Paseto.V2Test do
     test "Invalid PK fails to verify, with footer" do
       message = "Test Message"
       footer = "key-id:533434"
-      {:ok, _pk1, sk1} = Ed25519.keypair()
-      {:ok, pk2, _sk2} = Ed25519.keypair()
+      {:ok, sk1, _pk1} = Ed25519.generate_keypair()
+      {:ok, _sk2, pk2} = Ed25519.generate_keypair()
 
       {:ok, %Token{payload: signed_payload, footer: encoded_footer}} =
         message
@@ -126,11 +126,10 @@ defmodule Paseto.V2Test do
       # $secretKey = AsymmetricSecretKey(new Version2());
       # echo Base64UrlSafe::encodeUnpadded($secretKey->raw());
       # => 9xCi52l6M59Lix7EvEZHqceBjD5-10R7n_jpc2P0BREUZzW4SfV8ft_LAs7gw0avSVvhWhns1rf6BbOERCP2XQ
-      encoded_secret_key =
+      encoded_keypair =
         "9xCi52l6M59Lix7EvEZHqceBjD5-10R7n_jpc2P0BREUZzW4SfV8ft_LAs7gw0avSVvhWhns1rf6BbOERCP2XQ"
 
-      secret_key = Utils.b64_decode!(encoded_secret_key)
-      public_key = Ed25519.sk_to_pk(secret_key)
+      <<_secret_key::256-bits, public_key::256-bits>> = Utils.b64_decode!(encoded_keypair)
 
       # $plaintext = "v2 public example"
       # $footer = "v2 public footer"

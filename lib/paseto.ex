@@ -98,7 +98,7 @@ defmodule Paseto do
   * footer: An optional value, often used for storing keyIDs or other similar info.
 
   # Examples:
-      iex> {:ok, pk, sk} = Salty.Sign.Ed25519.keypair()
+      iex> {:ok, sk, pk} = Paseto.Crypto.Ed25519.generate_keypair()
       iex> token = generate_token("v2", "public", "This is a test message", sk)
       "v2.public.VGhpcyBpcyBhIHRlc3QgbWVzc2FnZSe-sJyD2x_fCDGEUKDcvjU9y3jRHxD4iEJ8iQwwfMUq5jUR47J15uPbgyOmBkQCxNDydR0yV1iBR-GPpyE-NQw"
       iex> Paseto.parse_token(token, pk)
@@ -110,7 +110,8 @@ defmodule Paseto do
         version: "v2"
         }}
   """
-  @spec generate_token(String.t(), String.t(), String.t(), binary, String.t()) :: String.t() | {:error, String.t()}
+  @spec generate_token(String.t(), String.t(), String.t(), binary, String.t()) ::
+          String.t() | {:error, String.t()}
   def generate_token(version, purpose, payload, secret_key, footer \\ "") do
     _generate_token(version, purpose, payload, secret_key, footer)
   end
@@ -132,8 +133,9 @@ defmodule Paseto do
 
     try do
       {:ok, String.to_existing_atom("Elixir.Paseto.#{version}")}
-    rescue RuntimeError ->
-      {:error, "Invalid version selected. Only v1 & v2 supported."}
+    rescue
+      RuntimeError ->
+        {:error, "Invalid version selected. Only v1 & v2 supported."}
     end
   end
 end

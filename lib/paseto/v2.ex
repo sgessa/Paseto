@@ -14,7 +14,7 @@ defmodule Paseto.V2 do
   alias Paseto.Token
   alias Paseto.Utils
   alias Paseto.Utils.Crypto
-  alias Salty.Sign.Ed25519
+  alias Paseto.Crypto.Ed25519
 
   import Paseto.Utils, only: [b64_decode!: 1]
 
@@ -74,15 +74,15 @@ defmodule Paseto.V2 do
   Handles signing the token for public use.
 
   # Examples:
-      iex> {:ok, pk, sk} = Salty.Sign.Ed25519.keypair()
+      iex> {:ok, sk, pk} = Paseto.Crypto.Ed25519.generate_keypair()
       iex> Paseto.V2.sign("Test Message", sk)
       "v2.public.VGVzdAJxQsXSrgYBkcwiOnWamiattqhhhNN_1jsY-LR_YbsoYpZ18-ogVSxWv7d8DlqzLSz9csqNtSzDk4y0JV5xaAE"
   """
   @spec sign(String.t(), String.t(), String.t()) :: String.t() | {:error, String.t()}
-  def sign(data, secret_key, footer \\ "") when byte_size(secret_key) == 64 do
+  def sign(data, secret_key, footer \\ "") when byte_size(secret_key) == 32 do
     pre_auth_encode = Utils.pre_auth_encode([@header_public, data, footer])
 
-    {:ok, sig} = Ed25519.sign_detached(pre_auth_encode, secret_key)
+    {:ok, sig} = Ed25519.sign(pre_auth_encode, secret_key)
 
     Utils.b64_encode_token(@header_public, data <> sig, footer)
   rescue
@@ -93,7 +93,7 @@ defmodule Paseto.V2 do
   Handles verifying the signature belongs to the provided key.
 
   # Examples:
-      iex> {:ok, pk, sk} = Salty.Sign.Ed25519.keypair()
+      iex> {:ok, sk, pk} = Paseto.Crypto.Ed25519.generate_keypair()
       iex> Paseto.V2.sign("Test Message", sk)
       "v2.public.VGVzdAJxQsXSrgYBkcwiOnWamiattqhhhNN_1jsY-LR_YbsoYpZ18-ogVSxWv7d8DlqzLSz9csqNtSzDk4y0JV5xaAE"
       iex> Paseto.V2.verify("VGVzdAJxQsXSrgYBkcwiOnWamiattqhhhNN_1jsY-LR_YbsoYpZ18-ogVSxWv7d8DlqzLSz9csqNtSzDk4y0JV5xaAE", pk)
@@ -109,7 +109,7 @@ defmodule Paseto.V2 do
 
     pre_auth_encode = Utils.pre_auth_encode([@header_public, data, decoded_footer])
 
-    :ok = Ed25519.verify_detached(sig, pre_auth_encode, public_key)
+    :ok = Ed25519.verify_detached(pre_auth_encode, sig, public_key)
     {:ok, data}
   rescue
     _ -> {:error, "Failed to verify signature."}

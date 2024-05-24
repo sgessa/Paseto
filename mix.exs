@@ -19,7 +19,7 @@ defmodule Paseto.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :public_key]
     ]
   end
 
@@ -28,7 +28,6 @@ defmodule Paseto.MixProject do
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:hkdf, "~> 0.2.0"},
       {:blake2, "~> 1.0"},
-      {:libsalty2, "~> 0.3.0"},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:stream_data, "~> 0.5.0", only: :test}
     ]
