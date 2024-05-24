@@ -114,7 +114,7 @@ iex> token = Paseto.generate_token("v2", "public", "This is a test message", sk)
 "v2.public.VGhpcyBpcyBhIHRlc3QgbWVzc2FnZSe-sJyD2x_fCDGEUKDcvjU9y3jRHxD4iEJ8iQwwfMUq5jUR47J15uPbgyOmBkQCxNDydR0yV1iBR-GPpyE-NQw"
 ```
 
-In short, we generate a keypair the token using the secret key.
+In short, first we generate a keypair and then a token using the secret key.
 
 P.S. If you're confused about how to serialize the above keys, you can use functions
 from the [`Base`](https://hexdocs.pm/elixir/Base.html) module:
