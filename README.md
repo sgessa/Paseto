@@ -109,27 +109,26 @@ To learn what each version means, please see [this page in the documentation](ht
 
 ### Generating a token
 ```elixir
-iex> {:ok, sk, pk} = Paseto.Crypto.Ed25519.generate_keypair()
-iex> keypair = {pk, sk}
-iex> token = Paseto.generate_token("v2", "public", "This is a test message", keypair)
+iex> {:ok, sk, _pk} = Paseto.Crypto.Ed25519.generate_keypair()
+iex> token = Paseto.generate_token("v2", "public", "This is a test message", sk)
 "v2.public.VGhpcyBpcyBhIHRlc3QgbWVzc2FnZSe-sJyD2x_fCDGEUKDcvjU9y3jRHxD4iEJ8iQwwfMUq5jUR47J15uPbgyOmBkQCxNDydR0yV1iBR-GPpyE-NQw"
 ```
 
-In short, we generate a keypair the token using that keypair.
+In short, we generate a keypair the token using the secret key.
 
 P.S. If you're confused about how to serialize the above keys, you can use functions
 from the [`Base`](https://hexdocs.pm/elixir/Base.html) module:
 
 ```elixir
 iex> {:ok, sk, pk} = Paseto.Crypto.Ed25519.generate_keypair()
-iex> pk |> Base.encode16(case: :lower)
+iex> Base.encode16(pk, case: :lower)
 "a17c258ffdd864b3614bd445465ff96e0b16e8509e28e7ba60734f7c433ab7e8"
 ```
 
 ### Parsing a token
 ```elixir
 iex> token = "v2.public.VGhpcyBpcyBhIHRlc3QgbWVzc2FnZSe-sJyD2x_fCDGEUKDcvjU9y3jRHxD4iEJ8iQwwfMUq5jUR47J15uPbgyOmBkQCxNDydR0yV1iBR-GPpyE-NQw"
-iex> Paseto.parse_token(token, keypair)
+iex> Paseto.parse_token(token, pk)
 {:ok,
   %Paseto.Token{
     footer: nil,
