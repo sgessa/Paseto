@@ -6,7 +6,7 @@ defmodule Paseto.Crypto.Ed25519 do
   @dialyzer {:nowarn_function, sign: 2}
   @spec sign(binary(), binary()) :: {:ok, binary()}
   def sign(message, private_key) when byte_size(private_key) == 32 do
-    {:ok, public_key, ^private_key} = seed_keypair(private_key)
+    {:ok, ^private_key, public_key} = seed_keypair(private_key)
     signature = :public_key.sign(message, :none, {:ed_pri, :ed25519, public_key, private_key})
     {:ok, signature}
   end
@@ -24,7 +24,7 @@ defmodule Paseto.Crypto.Ed25519 do
 
   @spec seed_keypair(binary()) :: {:ok, binary(), binary()}
   def seed_keypair(private_key) when byte_size(private_key) == 32 do
-    {sk, pk} = :crypto.generate_key(:eddsa, :ed25519, private_key)
+    {pk, sk} = :crypto.generate_key(:eddsa, :ed25519, private_key)
     {:ok, sk, pk}
   end
 
